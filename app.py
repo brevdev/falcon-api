@@ -9,7 +9,7 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code=True,
     device_map="auto",
     low_cpu_mem_usage=True,
-    offload_folder="/",
+    #offload_folder="/model_files",
 )
 tokenizer = AutoTokenizer.from_pretrained("tiiuae/falcon-7b-instruct")
 
