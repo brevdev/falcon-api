@@ -1,6 +1,5 @@
 import gradio as gr
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import transformers
 import torch
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -9,12 +8,11 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code=True,
     device_map="auto",
     low_cpu_mem_usage=True,
-    #offload_folder="/model_files",
 )
 tokenizer = AutoTokenizer.from_pretrained("tiiuae/falcon-7b-instruct")
 
 
-def create_embedding(input_text):
+def generate_text(input_text):
     input_ids = tokenizer.encode(input_text, return_tensors="pt")
     attention_mask = torch.ones(input_ids.shape)
 
@@ -30,11 +28,14 @@ def create_embedding(input_text):
 
     output_text = tokenizer.decode(output[0], skip_special_tokens=True)
     print(output_text)
-    return output_text
+
+    # Remove Prompt Echo from Generated Text
+    cleaned_output_text = output_text.replace(input_text, "")
+    return cleaned_output_text
 
 
-instructor_model_embeddings = gr.Interface(
-    fn=create_embedding,
+text_generation_interface = gr.Interface(
+    fn=generate_text,
     inputs=[
         gr.inputs.Textbox(label="Input Text"),
     ],
