@@ -32,4 +32,4 @@ def predict():
     return {'generated_text': text}
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=False)
+    app.run(port=8888, debug=False)
