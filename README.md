@@ -8,5 +8,5 @@ python app.py
 Curl command:
 
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"text":"Once upon a time"}' http://localhost:5000/predict
+curl -X POST -H "Content-Type: application/json" -d '{"text":"Once upon a time"}' http://localhost:8888/predict
 ```
