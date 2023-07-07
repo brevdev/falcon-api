@@ -1,5 +1,4 @@
-datasets
+flask
 transformers
-accelerate
 einops
-safetensors
+accelerate

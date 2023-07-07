@@ -1,7 +1,10 @@
-import gradio as gr
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from flask import Flask, request
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
+app = Flask(__name__)
+
+# Load pre-trained model and tokenizer
 model = AutoModelForCausalLM.from_pretrained(
     "tiiuae/falcon-7b-instruct",
     torch_dtype=torch.bfloat16,
@@ -11,34 +14,22 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer = AutoTokenizer.from_pretrained("tiiuae/falcon-7b-instruct")
 
+@app.route('/predict', methods=['POST'])
+def predict():
+    # Get the text from POST request
+    data = request.get_json(force=True)
+    text = data['text']
+    
+    # Encode a text inputs
+    input_ids = tokenizer.encode(text, return_tensors='pt')
 
-def generate_text(input_text):
-    input_ids = tokenizer.encode(input_text, return_tensors="pt")
-    attention_mask = torch.ones(input_ids.shape)
+    # Generate text until the output length (which includes the context length) reaches 50
+    output = model.generate(input_ids, max_length=50, num_beams=5, no_repeat_ngram_size=2, early_stopping=True)
 
-    output = model.generate(
-        input_ids,
-        attention_mask=attention_mask,
-        max_length=200,
-        do_sample=True,
-        top_k=10,
-        num_return_sequences=1,
-        eos_token_id=tokenizer.eos_token_id,
-    )
+    # Decode the generated text
+    text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    output_text = tokenizer.decode(output[0], skip_special_tokens=True)
-    print(output_text)
+    return {'generated_text': text}
 
-    # Remove Prompt Echo from Generated Text
-    cleaned_output_text = output_text.replace(input_text, "")
-    return cleaned_output_text
-
-
-text_generation_interface = gr.Interface(
-    fn=generate_text,
-    inputs=[
-        gr.inputs.Textbox(label="Input Text"),
-    ],
-    outputs=gr.inputs.Textbox(label="Generated Text"),
-    title="Falcon-7B Instruct",
-).launch()
+if __name__ == '__main__':
+    app.run(port=5000, debug=False)
